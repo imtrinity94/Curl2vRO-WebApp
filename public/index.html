@@ -3,421 +3,648 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Curl to vRO JS code Converter</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/prism-themes@1.9.0/themes/prism-vsc-dark-plus.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/@cds/core/global.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/@cds/core/styles/module.shims.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/@cds/city/css/bundles/default.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Metropolis:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>curl2vRO</title>
+    <meta name="description" content="Convert curl commands into VCF Operations Orchestrator (vRO) JavaScript. Runs in your browser.">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@cds/city@1.1.0/css/bundles/default.min.css">
     <style>
         :root {
-            --primary-color: var(--cds-global-color-blue-600);
-            --secondary-color: var(--cds-global-color-gray-900);
-            --accent-color: var(--cds-global-color-red-700);
+            --header: #002538;
+            --header-text: #ffffff;
+            --page: #f4f4f4;
+            --panel: #ffffff;
+            --panel-alt: #fafafa;
+            --border: #cccccc;
+            --border-soft: #e8e8e8;
+            --text: #313131;
+            --text-muted: #666666;
+            --action: #0072a3;
+            --action-hover: #004d8a;
+            --warning: #c25400;
+            --warning-bg: #fef3e6;
+            --danger: #c92100;
+            --danger-bg: #fdeae6;
+            --input-bg: #ffffff;
+            --chip: #e1f1f6;
+            --chip-text: #004d8a;
+            --mono: Menlo, Monaco, Consolas, "Courier New", monospace;
+            color-scheme: light;
         }
+        :root[data-theme="dark"] {
+            --header: #0f171c;
+            --header-text: #e9ecef;
+            --page: #1b2a32;
+            --panel: #21333b;
+            --panel-alt: #1b2a32;
+            --border: #485764;
+            --border-soft: #34444e;
+            --text: #e9ecef;
+            --text-muted: #adbbc4;
+            --action: #49afd9;
+            --action-hover: #89cbdf;
+            --warning: #ffb92e;
+            --warning-bg: #3a3122;
+            --danger: #f27963;
+            --danger-bg: #3d2724;
+            --input-bg: #17242b;
+            --chip: #17323f;
+            --chip-text: #89cbdf;
+            color-scheme: dark;
+        }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; height: 100%; }
         body {
-            font-family: 'Metropolis', var(--cds-global-typography-font-family);
-            background-color: var(--cds-global-color-gray-50);
-            color: var(--secondary-color);
+            font-family: "Clarity City", "Segoe UI", system-ui, sans-serif;
             font-size: 14px;
-            line-height: 1.6;
-        }
-        .top-nav {
-            background-color: #0f1924;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .top-nav .container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .nav-links {
-            display: flex;
-            gap: 1.5rem;
-            align-items: center;
-        }
-        .nav-links a {
-            color: #fff;
-            text-decoration: none;
-            font-size: 1.1rem;
-            opacity: 0.8;
-            transition: opacity 0.2s;
-        }
-        .nav-links a:hover {
-            opacity: 1;
-        }
-        .hero-section {
-            background: var(--cds-global-color-blue-900);
-            color: white;
-            padding: 3rem 0;
-            margin-bottom: 2rem;
-        }
-        .hero-title {
-            font-size: 2rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-        }
-        .hero-subtitle {
-            font-size: 1rem;
-            opacity: 0.9;
-        }
-        .main-content {
-            display: flex;
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-        
-        .content-left {
-            flex: 0 0 80%;
-            max-width: 80%;
-        }
-        
-        .content-right {
-            flex: 0 0 20%;
-            max-width: 20%;
-        }
-        .feature-card {
-            background: white;
-            border-radius: var(--cds-global-space-8);
-            padding: var(--cds-global-space-8);
-            margin-bottom: var(--cds-global-space-8);
-            box-shadow: var(--cds-alias-object-shadow-100);
-            transition: transform 0.3s ease;
-            height: auto;
-            min-height: 160px;
+            line-height: 1.5;
+            color: var(--text);
+            background: var(--page);
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
         }
-        
-        .feature-icon {
-            font-size: 20px;
-            margin-bottom: 0.75rem;
+        a { color: var(--action); }
+        a:hover { color: var(--action-hover); }
+        :focus-visible { outline: 2px solid var(--action); outline-offset: 2px; }
+
+        /* ---------- Header ---------- */
+        .app-header {
+            background: var(--header);
+            color: var(--header-text);
+            height: 48px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 24px;
+            flex: none;
         }
-        
-        .feature-card h3 {
-            font-size: 0.95rem;
-            margin-bottom: 0.5rem;
-            color: var(--cds-global-color-blue-800);
+        .brand { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 400; letter-spacing: .2px; }
+        .brand svg { width: 24px; height: 24px; }
+        .brand b { font-weight: 600; }
+        .tagline { color: rgba(255,255,255,.7); font-size: 13px; }
+        .header-links { margin-left: auto; display: flex; align-items: center; gap: 4px; }
+        .header-links a, .header-links button {
+            color: var(--header-text);
+            opacity: .8;
+            text-decoration: none;
+            font: inherit;
+            font-size: 13px;
+            background: none;
+            border: 0;
+            padding: 6px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .header-links a:hover, .header-links button:hover { opacity: 1; background: rgba(255,255,255,.08); }
+
+        /* ---------- Layout ---------- */
+        .workspace {
+            flex: 1;
+            min-height: 0;
+            display: grid;
+            grid-template-columns: minmax(320px, 36%) 1fr;
+            gap: 16px;
+            padding: 16px;
+        }
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .panel-head {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-soft);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .panel-head h2 { font-size: 16px; font-weight: 500; margin: 0; }
+
+        /* ---------- Left: curl input ---------- */
+        .curl-panel .body { padding: 16px; display: flex; flex-direction: column; gap: 16px; overflow: auto; flex: 1; }
+        .curl-input {
+            width: 100%;
+            min-height: 220px;
+            flex: 1;
+            resize: vertical;
+            font-family: var(--mono);
+            font-size: 12.5px;
+            line-height: 1.55;
+            color: var(--text);
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-bottom: 1px solid var(--text-muted);
+            border-radius: 0;
+            padding: 10px 12px;
+            tab-size: 2;
+        }
+        .curl-input:focus { outline: none; border-bottom: 2px solid var(--action); }
+        .hint { color: var(--text-muted); font-size: 12px; margin: -8px 0 0; }
+        .hint.disclaimer { margin: 0; padding-top: 12px; border-top: 1px solid var(--border-soft); }
+        .examples { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+        .examples span { color: var(--text-muted); font-size: 12px; margin-right: 2px; }
+        .chip {
+            font: inherit;
+            font-size: 12px;
+            border: 1px solid transparent;
+            background: var(--chip);
+            color: var(--chip-text);
+            border-radius: 12px;
+            padding: 2px 10px;
+            cursor: pointer;
+        }
+        .chip:hover { border-color: var(--action); }
+
+        fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 10px; }
+        legend { font-size: 13px; font-weight: 600; padding: 0; margin-bottom: 8px; }
+        .form-row { display: grid; grid-template-columns: 130px 1fr; align-items: center; gap: 8px; }
+        .form-row > label:first-child { color: var(--text-muted); font-size: 13px; }
+        .radio-group { display: flex; gap: 16px; }
+        .check { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; cursor: pointer; }
+        .check input, .radio-group input { accent-color: var(--action); margin: 3px 0 0; }
+        .check small { display: block; color: var(--text-muted); font-size: 12px; }
+        .text-input {
+            font: inherit;
+            font-size: 13px;
+            color: var(--text);
+            background: transparent;
+            border: 0;
+            border-bottom: 1px solid var(--text-muted);
+            padding: 4px 0;
+            width: 100%;
+        }
+        .text-input:focus { outline: none; border-bottom: 2px solid var(--action); }
+
+        /* ---------- Right: vRO object editor ---------- */
+        .editor-panel { overflow: hidden; }
+        .object-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .object-icon {
+            width: 28px; height: 28px; border-radius: 3px;
+            display: grid; place-items: center;
+            background: var(--chip); color: var(--chip-text);
+            font-family: var(--mono); font-size: 13px; font-weight: 700;
+        }
+        .object-name {
+            font-size: 18px;
+            font-weight: 400;
+            border: 0;
+            background: transparent;
+            color: var(--text);
+            padding: 2px 0;
+            border-bottom: 1px dashed transparent;
+            min-width: 0;
+            flex: 1;
+            font-family: inherit;
+        }
+        .object-name:hover { border-bottom-color: var(--border); }
+        .object-name:focus { outline: none; border-bottom: 1px solid var(--action); }
+        .object-kind { color: var(--text-muted); font-size: 12px; }
+        .toolbar { display: flex; gap: 8px; }
+        .btn {
+            font: inherit;
+            font-size: 12px;
             font-weight: 600;
+            letter-spacing: .5px;
+            text-transform: uppercase;
+            border-radius: 3px;
+            padding: 0 12px;
+            height: 28px;
+            cursor: pointer;
+            border: 1px solid var(--action);
+            background: transparent;
+            color: var(--action);
         }
-        
-        .feature-card p {
-            margin: 0;
-            font-size: 0.85rem;
-            color: var(--cds-global-color-gray-700);
-            line-height: 1.4;
+        .btn:hover { background: var(--chip); }
+        .btn-primary { background: var(--action); color: #fff; }
+        .btn-primary:hover { background: var(--action-hover); border-color: var(--action-hover); }
+
+        .editor-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 240px 1fr; }
+        .props {
+            border-right: 1px solid var(--border-soft);
+            background: var(--panel-alt);
+            padding: 12px 16px;
+            overflow: auto;
+            font-size: 13px;
         }
-        
-        .feature-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .feature-list {
-            position: sticky;
-            top: 2rem;
-        }
-        
-        @media (max-width: 768px) {
-            .main-content {
-                flex-direction: column;
-            }
-            .content-left, .content-right {
-                flex: 0 0 100%;
-                max-width: 100%;
-            }
-            .feature-list {
-                position: static;
-                display: flex;
-                flex-wrap: wrap;
-                gap: 1rem;
-                justify-content: center;
-            }
-            .feature-card {
-                flex: 0 0 calc(33.33% - 1rem);
-                min-width: 250px;
-                margin-bottom: 1rem;
-            }
+        .props h3 { font-size: 13px; font-weight: 600; margin: 12px 0 6px; }
+        .props h3:first-child { margin-top: 0; }
+        .props dl { margin: 0; }
+        .props .runtime { color: var(--text-muted); }
+        .io-table { width: 100%; border-collapse: collapse; }
+        .io-table td { padding: 5px 0; border-bottom: 1px solid var(--border-soft); vertical-align: top; }
+        .io-table td:first-child { font-family: var(--mono); font-size: 12px; word-break: break-all; padding-right: 8px; }
+        .io-table td:last-child { color: var(--text-muted); font-size: 12px; text-align: right; white-space: nowrap; }
+        .io-table .secret { color: var(--warning); }
+        .empty { color: var(--text-muted); font-size: 12px; }
+        .code-wrap { position: relative; min-height: 0; min-width: 0; }
+        #monaco { position: absolute; inset: 0; }
+        #fallback {
+            position: absolute; inset: 0; margin: 0; padding: 8px 16px; overflow: auto;
+            font-family: var(--mono); font-size: 13px; line-height: 19px; white-space: pre;
+            background: var(--panel); color: var(--text);
         }
 
-        @media (max-width: 576px) {
-            .feature-card {
-                flex: 0 0 100%;
-            }
+        .problems { border-top: 1px solid var(--border); max-height: 30%; overflow: auto; flex: none; }
+        .problems-head {
+            display: flex; align-items: center; gap: 8px; padding: 6px 16px;
+            font-size: 12px; color: var(--text-muted); background: var(--panel-alt);
+            border-bottom: 1px solid var(--border-soft);
         }
-        pre {
-            max-height: 500px;
-            overflow-y: auto;
-            background: var(--cds-global-color-gray-1000) !important;
-            border-radius: var(--cds-global-space-8);
-            padding: var(--cds-global-space-8) !important;
-            margin: var(--cds-global-space-8) 0;
-            box-shadow: var(--cds-alias-object-shadow-100);
-            position: relative;
+        .problems-head strong { color: var(--text); font-weight: 600; }
+        .problems ul { list-style: none; margin: 0; padding: 4px 0; }
+        .problems li { display: flex; gap: 8px; padding: 4px 16px; font-size: 13px; }
+        .problems li svg { flex: none; width: 16px; height: 16px; margin-top: 2px; }
+        .problems li.warn svg { color: var(--warning); }
+        .problems li.error { background: var(--danger-bg); }
+        .problems li.error svg { color: var(--danger); }
+        .problems li.info svg { color: var(--action); }
+
+        .toast {
+            position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: var(--header); color: #fff; padding: 8px 16px; border-radius: 3px; font-size: 13px;
+            opacity: 0; pointer-events: none; transition: opacity .15s, transform .15s;
         }
-        
-        pre code {
-            display: block;
-            padding-top: 1rem;
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        @media (max-width: 900px) {
+            .workspace { grid-template-columns: 1fr; }
+            .editor-panel { min-height: 640px; }
+            .editor-body { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+            .props { border-right: 0; border-bottom: 1px solid var(--border-soft); }
+            .tagline { display: none; }
         }
-        
-        .copy-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: transparent;
-            border: none;
-            color: var(--cds-global-color-gray-500);
-            cursor: pointer;
-            padding: 5px;
-            transition: color 0.2s ease;
-            z-index: 1;
+        @media (max-width: 520px) {
+            .workspace { padding: 8px; gap: 8px; }
+            .form-row { grid-template-columns: 1fr; }
+            .object-title { flex-wrap: wrap; }
+            .object-name { flex-basis: calc(100% - 40px); }
+            .object-kind { margin-right: auto; }
+            .header-links a:not(:last-child) { display: none; }
         }
-        .btn-primary {
-            background-color: var(--cds-global-color-blue-700);
-            border: none;
-            padding: var(--cds-global-space-6) var(--cds-global-space-8);
-            font-weight: var(--cds-global-typography-font-weight-semibold);
-        }
-        .btn-primary:hover {
-            background-color: var(--cds-global-color-blue-800);
-        }
-        .form-control {
-            border-radius: var(--cds-global-space-4);
-            padding: var(--cds-global-space-6);
-            border: 2px solid var(--cds-global-color-gray-200);
-            font-size: 14px;
-        }
-        
-        .copy-button {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: transparent;
-            border: none;
-            color: var(--cds-global-color-gray-500);
-            cursor: pointer;
-            padding: 5px;
-            transition: color 0.2s ease;
-        }
-        
-        .copy-button:hover {
-            color: var(--cds-global-color-blue-700);
-        }
-        .documentation-links {
-            background: var(--cds-global-color-gray-100);
-            padding: var(--cds-global-space-8);
-            border-radius: var(--cds-global-space-4);
-            margin: 2rem 0;
-        }
-        .documentation-links h3 {
-            color: var(--cds-global-color-blue-800);
-            margin-bottom: var(--cds-global-space-6);
-        }
-        .documentation-links a {
-            color: var(--cds-global-color-blue-700);
-            text-decoration: none;
-            display: block;
-            margin-bottom: var(--cds-global-space-4);
-        }
-        .documentation-links a:hover {
-            color: var(--cds-global-color-blue-900);
-            text-decoration: underline;
-        }
-d        .main-subtitle {
-            margin-top: 10px;
-            margin-bottom: 1rem;
-            font-size: large;
-            align-self: center;
-            text-align: center;
-            color: var(--secondary-color);
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-            line-height: 1.6;
-            font-weight: 400;
-        }
+        @media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
     </style>
 </head>
-<style>
-.ribbon {
-    position: fixed;
-    top: 25px;
-    right: -80px;
-    width: 240px;
-    background-color: #FF0000;
-    color: white;
-    text-align: center;
-    padding: 8px 0;
-    transform: rotate(45deg);
-    font-weight: bold;
-    z-index: 1000;
-    box-shadow: 0 0 10px rgba(0,0,0,0.3);
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    line-height: 1.2;
-}
-</style>
-<div class="ribbon">IMPROVED</div>
 <body>
-    <nav class="top-nav">
-        <div class="container">
-            <div class="nav-brand">
-                <h1 style="color: white; font-size: 1.25rem; margin: 0;">curl2vRO <span style="font-size: 0.7rem; opacity: 0.7;">v2.0.0</span></h1>
-            </div>
-            <div class="nav-links">
-                <a href="https://github.com/imtrinity94/curl2vro" target="_blank"><i class="fab fa-github"></i></a>
-                <a href="https://www.npmjs.com/package/curl2vro" target="_blank"><i class="fab fa-npm"></i></a>
-                <a href="https://cloudblogger.co.in/2025/05/05/curl2vro-effortlessly-convert-curl-commands-to-orchestrator-javascript-code/" target="_blank"><i class="fas fa-book"></i></a>
-            </div>
+    <header class="app-header">
+        <div class="brand">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+                <path d="M4 7h7M4 12h11M4 17h7" stroke-linecap="round"/>
+                <path d="M15 5l5 5-5 5" stroke-linecap="round" stroke-linejoin="round" transform="translate(0 2)"/>
+            </svg>
+            <span><b>curl2</b>vRO</span>
         </div>
-    </nav>
+        <span class="tagline">curl in, VCF Operations Orchestrator JavaScript out</span>
+        <nav class="header-links" aria-label="Project links">
+            <a href="https://github.com/imtrinity94/curl2vro" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://www.npmjs.com/package/curl2vro" target="_blank" rel="noopener">npm</a>
+            <a href="https://cloudblogger.co.in/2025/05/05/curl2vro-effortlessly-convert-curl-commands-to-orchestrator-javascript-code/" target="_blank" rel="noopener">Guide</a>
+            <button type="button" id="themeToggle" aria-label="Switch light or dark theme">Dark theme</button>
+        </nav>
+    </header>
 
-    <div class="container">
-        <p class="main-subtitle" style="margin-top: 20px; font-size: x-large;">Transform complex cURL commands into clean, ready-to-use VCF Operations Orchestrator JavaScript code</p>
-        
-        <div class="main-content">
-            <div class="content-left">
-                <div class="conversion-section bg-white p-4 rounded-3 shadow-sm">
-                    <h2 class="mb-4">Try It Now</h2>
-                    <div class="mb-3">
-                        <label for="curlCommand" class="form-label">Enter your curl command:</label>
-                        <textarea class="form-control" id="curlCommand" rows="5" placeholder="Enter your curl command here... e.g., curl -X GET https://api.example.com/data"></textarea>
-                    </div>
-                    <button class="btn btn-primary mb-4" onclick="convertCommand()">Convert to vRO</button>
-                    
-                    <div id="result" style="display: none;">
-                        <h3>Generated vRO Code:</h3>
-                        <pre>
-                            <button class="copy-button" onclick="copyCode()" title="Copy to clipboard">
-                                <i class="fas fa-copy"></i>
-                            </button>
-                            <code class="language-javascript" id="vroCode"></code>
-                        </pre>
-                    </div>
+    <main class="workspace">
+        <!-- ================= curl input ================= -->
+        <section class="panel curl-panel" aria-labelledby="curlTitle">
+            <div class="panel-head"><h2 id="curlTitle">curl command</h2></div>
+            <div class="body">
+                <textarea id="curlCommand" class="curl-input" spellcheck="false" autocomplete="off"
+                    aria-describedby="curlHint"
+                    placeholder="curl -X GET https://vra.example.com/iaas/api/projects -H &quot;Authorization: Bearer $token&quot;"></textarea>
+                <p id="curlHint" class="hint">Paste from docs, Postman, a browser's Copy as cURL, bash, cmd or PowerShell. The code updates as you type.</p>
+
+                <div class="examples" aria-label="Examples">
+                    <span>Try</span>
+                    <button type="button" class="chip" data-example="vra">vRA bearer token</button>
+                    <button type="button" class="chip" data-example="nsx">NSX basic auth</button>
+                    <button type="button" class="chip" data-example="cmd">Chrome (cmd)</button>
+                    <button type="button" class="chip" data-example="ps">PowerShell</button>
+                    <button type="button" class="chip" data-example="xml">XML body</button>
                 </div>
 
-                <div class="documentation-links">
-                    <h3>Documentation & Resources</h3>
-                    <a href="https://github.com/imtrinity94/curl2vro" target="_blank" rel="noopener">
-                        <i class="fab fa-github"></i> GitHub Repository
-                    </a>
-                    <a href="https://www.npmjs.com/package/curl2vro" target="_blank" rel="noopener">
-                        <i class="fab fa-npm"></i> Official NPM Package Documentation
-                    </a>
-                    <a href="https://cloudblogger.co.in/2025/05/05/curl2vro-effortlessly-convert-curl-commands-to-orchestrator-javascript-code/" target="_blank" rel="noopener">
-                        <i class="fas fa-book"></i> Detailed Tutorial & Usage Guide
-                    </a>
-                    <p class="mt-3 text-muted">Learn more about using curl2vRO in your VCF Operations Orchestrator workflows</p>
+                <fieldset>
+                    <legend>Generate</legend>
+                    <div class="form-row">
+                        <label>Generate as</label>
+                        <div class="radio-group" role="radiogroup">
+                            <label class="check"><input type="radio" name="mode" value="action" checked> Action</label>
+                            <label class="check"><input type="radio" name="mode" value="task"> Scriptable task</label>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <label for="logPrefix">Log prefix</label>
+                        <input id="logPrefix" class="text-input" type="text" placeholder="[MyApp][getProjects]">
+                    </div>
+                    <label class="check"><input type="checkbox" id="optTrust" checked>
+                        <span>Import the server certificate<small>Adds the certificate to the Orchestrator trust store before the call</small></span></label>
+                    <label class="check"><input type="checkbox" id="optMask" checked>
+                        <span>Mask secrets<small>Tokens, passwords and API keys become SecureString inputs</small></span></label>
+                    <label class="check"><input type="checkbox" id="optVars" checked>
+                        <span>Turn placeholders into inputs<small>$var, ${var}, {{var}}, {var} and &lt;var&gt; in the URL</small></span></label>
+                    <label class="check"><input type="checkbox" id="optCurl" checked>
+                        <span>Keep the original curl as a comment<small>Secrets are replaced with ********</small></span></label>
+                </fieldset>
+                <p class="hint disclaimer">Test generated code in a non-production environment before using it in production.</p>
+            </div>
+        </section>
+
+        <!-- ================= vRO object editor ================= -->
+        <section class="panel editor-panel" aria-label="Generated vRO code">
+            <div class="object-title">
+                <div class="object-icon" id="objectIcon" aria-hidden="true">{ }</div>
+                <input id="objectName" class="object-name" value="callRestApi" aria-label="Name" spellcheck="false">
+                <span class="object-kind" id="objectKind">Action</span>
+                <div class="toolbar">
+                    <button type="button" class="btn" id="downloadBtn">Download</button>
+                    <button type="button" class="btn btn-primary" id="copyBtn">Copy</button>
                 </div>
             </div>
-            
-            <div class="content-right">
-                <div class="feature-list">
-                    <div class="feature-card">
-                        <div class="feature-icon">🚀</div>
-                        <h3>Easy Conversion</h3>
-                        <p>Transform complex cURL commands into clean vRO JavaScript instantly</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">🔒</div>
-                        <h3>Header Support</h3>
-                        <p>Automatically handles all headers from your cURL commands</p>
-                    </div>
-                    <div class="feature-card">
-                        <div class="feature-icon">⚡</div>
-                        <h3>Developer Ready</h3>
-                        <p>Generates code that works right away in your vRO workflows</p>
-                    </div>
+            <div class="editor-body">
+                <aside class="props" id="props" aria-label="Properties"></aside>
+                <div class="code-wrap">
+                    <div id="monaco"></div>
+                    <pre id="fallback" hidden></pre>
                 </div>
             </div>
-        </div>
-    </div>
+            <div class="problems" aria-live="polite">
+                <div class="problems-head"><strong id="problemsTitle">Notes</strong><span id="problemsCount"></span></div>
+                <ul id="problemsList"></ul>
+            </div>
+        </section>
+    </main>
 
-    <footer class="bg-light mt-5 py-4">
-        <div class="container text-center">
-            <p class="mb-0">Made with ❤️ for VCF Operations Orchestrator developers</p>
-            <p class="text-muted small mt-2">
-                <em>Note: Generated code should be tested in a non-production environment before use.</em>
-            </p>
-        </div>
-    </footer>
+    <div class="toast" id="toast" role="status"></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-javascript.min.js"></script>
     <script>
-        function copyCode() {
-            const codeElement = document.getElementById('vroCode');
-            const textToCopy = codeElement.textContent;
-            
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                const copyButton = document.querySelector('.copy-button');
-                const originalIcon = copyButton.innerHTML;
-                
-                // Change to check icon temporarily
-                copyButton.innerHTML = '<i class="fas fa-check"></i>';
-                
-                // Revert back to copy icon after 2 seconds
-                setTimeout(() => {
-                    copyButton.innerHTML = originalIcon;
-                }, 2000);
-            }).catch(err => {
-                console.error('Failed to copy text: ', err);
-            });
-        }
-        
-        async function convertCommand() {
-            const curlCommand = document.getElementById('curlCommand').value;
-            const resultDiv = document.getElementById('result');
-            const codeElement = document.getElementById('vroCode');
+        // Monaco (the editor vRO itself uses), loaded from cdnjs with a same-origin worker shim
+        var MONACO_BASE = 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/';
+        window.MonacoEnvironment = {
+            getWorkerUrl: function () {
+                return 'data:text/javascript;charset=utf-8,' + encodeURIComponent(
+                    "self.MonacoEnvironment={baseUrl:'" + MONACO_BASE + "'};importScripts('" + MONACO_BASE + "vs/base/worker/workerMain.js');");
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/loader.js"></script>
+    <script type="module">
+        const $ = (id) => document.getElementById(id);
+        const icons = {
+            warn: '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 1.5 15 14H1L8 1.5Zm-.75 4.5v4h1.5V6h-1.5Zm0 5v1.5h1.5V11h-1.5Z"/></svg>',
+            error: '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 1a7 7 0 1 1 0 14A7 7 0 0 1 8 1Zm-.75 3.5v5h1.5v-5h-1.5Zm0 6v1.5h1.5V10.5h-1.5Z"/></svg>',
+            info: '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 1a7 7 0 1 1 0 14A7 7 0 0 1 8 1Zm-.75 6v5h1.5V7h-1.5Zm0-3v1.5h1.5V4h-1.5Z"/></svg>'
+        };
 
-            if (!curlCommand.trim()) {
-                alert('Please enter a curl command');
+        const EXAMPLES = {
+            vra: `curl --location --request POST \\
+  'https://vra.vmw.lab/iaas/api/network-ip-ranges/{range_id}/ip-addresses/allocate?apiVersion=$api_version' \\
+  -H "Authorization: Bearer $access_token" \\
+  -H 'Content-Type: application/json' \\
+  -d '{
+     "description": "Automated IP Allocation",
+     "numberOfIps": 1
+}'`,
+            nsx: `curl -k -u admin:VMware1!VMware1! -X GET \\
+  'https://nsx.vmw.lab/policy/api/v1/infra/segments?page_size=50' \\
+  -H 'Accept: application/json' -s -v --compressed`,
+            cmd: `curl ^"https://vcfa.vmw.lab/cloudapi/1.0.0/orgs^" ^
+  -H ^"Accept: application/json;version=40.0^" ^
+  -H ^"Authorization: Bearer eyJhbGciOiJSUzI1NiJ9.abc.def^" ^
+  --compressed`,
+            ps: `curl.exe -X POST \`
+  "https://vcenter.vmw.lab/api/session" \`
+  -H "Content-Type: application/json" \`
+  -d '{"username":"administrator@vsphere.local","password":"VMware1!"}' \`
+  -k`,
+            xml: `curl -X POST https://infoblox.vmw.lab/wapi/v2.12/request \\
+  -H 'Content-Type: application/xml' \\
+  -H 'X-Api-Key: 9f2c41d8e7' \\
+  -d '<request>
+  <network>10.10.20.0/24</network>
+  <comment>Created from vRO</comment>
+</request>'`
+        };
+
+        // ---------- State ----------
+        const store = {
+            get(k, d) { try { const v = localStorage.getItem('curl2vro.' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+            set(k, v) { try { localStorage.setItem('curl2vro.' + k, JSON.stringify(v)); } catch (e) { /* storage unavailable */ } }
+        };
+        const input = $('curlCommand');
+        let engine = null;
+        let editor = null;
+        let monacoApi = null;
+        let lastResult = null;
+        let nameTouched = false;
+
+        // ---------- Theme ----------
+        function applyTheme(t) {
+            document.documentElement.dataset.theme = t;
+            $('themeToggle').textContent = t === 'dark' ? 'Light theme' : 'Dark theme';
+            if (monacoApi) monacoApi.editor.setTheme(t === 'dark' ? 'vs-dark' : 'vs');
+        }
+        let theme = store.get('theme', matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        applyTheme(theme);
+        $('themeToggle').addEventListener('click', () => { theme = theme === 'dark' ? 'light' : 'dark'; store.set('theme', theme); applyTheme(theme); });
+
+        // ---------- Options ----------
+        function options() {
+            return {
+                mode: document.querySelector('input[name="mode"]:checked').value,
+                trustCertificate: $('optTrust').checked,
+                maskSecrets: $('optMask').checked,
+                variablesAsInputs: $('optVars').checked,
+                includeCurlComment: $('optCurl').checked,
+                logPrefix: $('logPrefix').value.trim()
+            };
+        }
+        const saved = store.get('options', null);
+        if (saved) {
+            const r = document.querySelector('input[name="mode"][value="' + saved.mode + '"]');
+            if (r) r.checked = true;
+            $('optTrust').checked = saved.trustCertificate !== false;
+            $('optMask').checked = saved.maskSecrets !== false;
+            $('optVars').checked = saved.variablesAsInputs !== false;
+            $('optCurl').checked = saved.includeCurlComment !== false;
+            $('logPrefix').value = saved.logPrefix || '';
+        }
+        input.value = store.get('curl', EXAMPLES.vra);
+
+        // ---------- Rendering ----------
+        function setCode(code) {
+            if (editor) {
+                const pos = editor.getScrollTop();
+                editor.setValue(code);
+                editor.setScrollTop(pos);
+            } else {
+                $('fallback').hidden = false;
+                $('fallback').textContent = code;
+            }
+        }
+        function getCode() {
+            return editor ? editor.getValue() : $('fallback').textContent;
+        }
+
+        function suggestName(req) {
+            const verbs = { GET: 'get', POST: 'post', PUT: 'update', PATCH: 'update', DELETE: 'delete', HEAD: 'head', OPTIONS: 'options' };
+            const segs = req.path.split('?')[0].split('/').filter(s => s && !/^\$|^\{|^v?\d+(\.\d+)*$|^api$|^[0-9a-f-]{16,}$/i.test(s));
+            const last = segs.length ? segs[segs.length - 1] : 'request';
+            const words = last.split(/[^A-Za-z0-9]+/).filter(Boolean);
+            const obj = words.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('') || 'Request';
+            let verb = verbs[req.method] || req.method.toLowerCase();
+            const camel = (s) => s.split(/[^A-Za-z0-9]+/).filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('');
+            // POST .../ip-addresses/allocate -> allocateIpAddresses
+            if (req.method === 'POST' && /^(allocate|release|deploy|execute|run|reconfigure|search|query|validate|power-on|power-off|reboot)$/i.test(last)) {
+                const v = camel(last);
+                const prev = segs.length > 1 ? camel(segs[segs.length - 2]) : '';
+                return v.charAt(0).toLowerCase() + v.slice(1) + prev;
+            }
+            if (req.method === 'POST' && /^(login|session|sessions|token|tokens)$/i.test(last)) return 'createSession';
+            if (req.method === 'POST') verb = 'create';
+            return verb + obj;
+        }
+
+        function renderFrame(opts, result) {
+            const isTask = opts.mode === 'task';
+            $('objectKind').textContent = isTask ? 'Scriptable task' : 'Action';
+            $('objectIcon').textContent = isTask ? '{}' : 'fx';
+
+            const inputs = result ? result.inputs : [];
+            const rows = inputs.length
+                ? '<table class="io-table">' + inputs.map(i =>
+                    '<tr title="' + esc(i.source || '') + '"><td>' + esc(i.name) + '</td><td class="' + (i.secret ? 'secret' : '') + '">' + esc(i.type) + '</td></tr>').join('') + '</table>'
+                : '<p class="empty">None</p>';
+            $('props').innerHTML = isTask
+                ? '<h3>Inputs</h3>' + rows + '<h3>Outputs</h3><table class="io-table"><tr><td>responseBody</td><td>Any</td></tr></table>'
+                : '<h3>Runtime</h3><p class="runtime">JavaScript</p><h3>Inputs</h3>' + rows + '<h3>Return type</h3><p class="runtime">Any</p>';
+        }
+
+        function renderProblems(items) {
+            const errors = items.filter(i => i.kind === 'error').length;
+            const warns = items.filter(i => i.kind === 'warn').length;
+            $('problemsTitle').textContent = errors ? 'Problems' : 'Notes';
+            $('problemsCount').textContent = items.length
+                ? [errors && errors + (errors === 1 ? ' error' : ' errors'), warns && warns + (warns === 1 ? ' warning' : ' warnings')].filter(Boolean).join(', ') || items.length + ' note' + (items.length === 1 ? '' : 's')
+                : 'Nothing to flag';
+            $('problemsList').innerHTML = items.map(i => '<li class="' + i.kind + '">' + icons[i.kind] + '<span>' + esc(i.text) + '</span></li>').join('');
+        }
+
+        function esc(s) {
+            return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        function convertNow() {
+            const opts = options();
+            store.set('options', opts);
+            store.set('curl', input.value);
+            if (!engine) return;
+            if (!input.value.trim()) {
+                renderFrame(opts, null);
+                setCode('// Paste a curl command on the left to generate vRO code.\n');
+                renderProblems([]);
+                lastResult = null;
                 return;
             }
-
             try {
-                const apiUrl = window.location.origin + '/api/convert';
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ curlCommand: curlCommand }),
-                    credentials: 'same-origin'
-                });
-                
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({}));
-                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                
-                if (data.error) {
-                    alert(data.error);
-                    return;
-                }
-                
-                if (data.result) {
-                    // Clear previous content
-                    codeElement.textContent = data.result;
-                    
-                    // Show the result div first
-                    resultDiv.style.display = 'block';
-                    
-                    // Force Prism to highlight the code
-                    Prism.highlightElement(codeElement);
-                } else {
-                    alert('Unexpected response format');
-                }
-            } catch (error) {
-                alert('Error: ' + (error.message || 'Failed to convert curl command'));
+                const result = engine.convert(input.value, opts);
+                lastResult = result;
+                setCode(result.code);
+                if (!nameTouched) $('objectName').value = suggestName(result.request);
+                renderFrame(opts, result);
+                const items = result.notes.map(t => ({ kind: 'info', text: t }))
+                    .concat(result.warnings.map(t => ({ kind: 'warn', text: t })));
+                renderProblems(items);
+            } catch (e) {
+                renderFrame(opts, lastResult);
+                renderProblems([{ kind: 'error', text: (e && e.message ? e.message : String(e)) + (lastResult ? ' The editor still shows the last successful conversion.' : '') }]);
             }
+        }
+
+        let timer = null;
+        function schedule() { clearTimeout(timer); timer = setTimeout(convertNow, 200); }
+        input.addEventListener('input', schedule);
+        document.querySelectorAll('fieldset input').forEach(el => el.addEventListener(el.type === 'text' ? 'input' : 'change', schedule));
+        document.querySelectorAll('[data-example]').forEach(b => b.addEventListener('click', () => {
+            input.value = EXAMPLES[b.dataset.example];
+            nameTouched = false;
+            convertNow();
+            input.focus();
+        }));
+        $('objectName').addEventListener('input', () => { nameTouched = true; });
+
+        // ---------- Copy / download ----------
+        function toast(msg) {
+            const t = $('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            clearTimeout(toast.timer);
+            toast.timer = setTimeout(() => t.classList.remove('show'), 1600);
+        }
+        $('copyBtn').addEventListener('click', async () => {
+            try { await navigator.clipboard.writeText(getCode()); toast('Copied to clipboard'); }
+            catch (e) { toast('Copy failed: select the code and press Ctrl+C'); }
+        });
+        $('downloadBtn').addEventListener('click', () => {
+            const name = ($('objectName').value.trim() || 'callRestApi').replace(/[^A-Za-z0-9_.-]/g, '_');
+            const blob = new Blob([getCode()], { type: 'text/javascript' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = name + '.js';
+            a.click();
+            setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+            toast('Downloaded ' + name + '.js');
+        });
+
+        // ---------- Boot ----------
+        renderFrame(options(), null);
+        renderProblems([{ kind: 'info', text: 'Loading the curl parser…' }]);
+
+        function startMonaco() {
+            return new Promise((resolve) => {
+                if (!window.require || !window.require.config) return resolve(null);
+                window.require.config({ paths: { vs: MONACO_BASE + 'vs' } });
+                window.require(['vs/editor/editor.main'], () => resolve(window.monaco), () => resolve(null));
+            });
+        }
+
+        const [engineMod, monaco] = await Promise.all([
+            import('./engine/curl2vro.browser.mjs').catch(e => { console.error(e); return null; }),
+            startMonaco()
+        ]);
+
+        if (monaco) {
+            monacoApi = monaco;
+            // vRO globals (System, Server, return at top level) are not errors here
+            monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({ noSemanticValidation: true, noSyntaxValidation: true });
+            monaco.languages.typescript.javascriptDefaults.setCompilerOptions({ target: monaco.languages.typescript.ScriptTarget.ES5, allowNonTsExtensions: true, noLib: true });
+            editor = monaco.editor.create($('monaco'), {
+                value: '',
+                language: 'javascript',
+                theme: theme === 'dark' ? 'vs-dark' : 'vs',
+                automaticLayout: true,
+                minimap: { enabled: false },
+                fontSize: 13,
+                lineHeight: 19,
+                scrollBeyondLastLine: false,
+                renderLineHighlight: 'line',
+                tabSize: 4,
+                wordWrap: 'off',
+                fixedOverflowWidgets: true
+            });
+        } else {
+            $('fallback').hidden = false;
+        }
+
+        if (!engineMod) {
+            renderProblems([{ kind: 'error', text: 'The curl parser could not be loaded. Check your connection and reload the page.' }]);
+        } else {
+            engine = engineMod;
+            convertNow();
         }
     </script>
 </body>
